@@ -3,7 +3,7 @@ module.exports = {
   routes: [
     {
       method: 'GET',
-      path: '/pub/affordable',
+      path: '/pubs/affordable',
       handler: 'pub.affordable',
       config: {auth:false},
     },

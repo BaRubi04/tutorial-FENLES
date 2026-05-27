@@ -1,33 +1,58 @@
-// ignore_for_file: prefer_const_constructors, use_super_parameters, unnecessary_null_comparison
-// ignore_for_file: prefer_const_literals_to_create_immutables
-import 'affordable_pubs_screen.dart';
-import 'dart:convert';
-import 'models/pubs.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
+import 'main.dart';
+import 'models/pubs.dart';
 import 'pub_card.dart';
 
-void main() => runApp(EverisFridayApp());
-
-class EverisFridayApp extends StatefulWidget {
-  const EverisFridayApp({Key? key}) : super(key: key);
+class AffordablePubsScreen extends StatefulWidget {
+  const AffordablePubsScreen({super.key});
 
   @override
-  EverisFridayState createState() => EverisFridayState();
+  _AffordablePubsScreenState createState() => _AffordablePubsScreenState();
 }
 
-class EverisFridayState extends State<EverisFridayApp> {
-  final List<Pubs> _listPubs = <Pubs>[];
+class _AffordablePubsScreenState extends State<AffordablePubsScreen> {
+  List<dynamic> pubs = [];
+  bool isLoading = true;
+
+  EverisFridayState objEFS = EverisFridayState(); //Como en Java
+
+  int get maxPrice => objEFS.precioMaximo;
+  List<Pubs> get _listPubs => objEFS.listaPubs;
   late Future<String> futurePubs;
-  int maxPrice = 15;
+
+   
 
   @override
   void initState() {
     super.initState();
-    futurePubs = getPubs(_listPubs);
+    futurePubs = fetchAffordablePubs(_listPubs);
   }
-  
+
+  Future<String> fetchAffordablePubs(_listPubs) async {
+    final response = await http.get(Uri.parse('http://localhost:1337/api/pubs/affordable?maxPrice=$maxPrice'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> pubsListRaw = jsonDecode(response.body);
+      for (var i = 0; i < pubsListRaw.length; i++) {
+        _listPubs.add(Pubs.fromJson(pubsListRaw[i]));
+      }
+      setState(() {
+        isLoading = false;
+      });
+      return "Success!";
+    } else {
+      // Error handling
+      setState(() {
+        isLoading = false;
+      });
+      print("Failed to load pubs: ${response.statusCode}");
+      return "Error";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -53,9 +78,9 @@ class EverisFridayState extends State<EverisFridayApp> {
                       foregroundColor: Colors.white,
                     ),
                     onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => AffordablePubsScreen()));
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => EverisFridayApp()));
                     },
-                    child: Text('Show Affordable Pubs'),
+                    child: Text('Show All Pubs'),
                   );
                 }
               ),
@@ -66,7 +91,7 @@ class EverisFridayState extends State<EverisFridayApp> {
     );
   }
 
-  Widget _buildPubs() {
+    Widget _buildPubs() {
     return FutureBuilder<String>(
       future: futurePubs,
       builder: (context, snapshot) {
@@ -86,24 +111,8 @@ class EverisFridayState extends State<EverisFridayApp> {
       },
     );
   }
-  Future<String> getPubs(_listPubs) async {
-    final Response response = await get(Uri.parse('http://localhost:1337/api/pubs'));
 
-    if (response.statusCode == 200) {
-      List<dynamic> pubsListRaw = jsonDecode(response.body);
-      for (var i = 0; i < pubsListRaw.length; i++) {
-        _listPubs.add(Pubs.fromJson(pubsListRaw[i]));
-      }
-
-      return "Success!";
-    } else {
-      throw Exception('Failed to load data');
-    }
-  }
-  int get precioMaximo {  
-    return maxPrice;  
-  }
-  List<Pubs> get listaPubs {  
-    return _listPubs;  
-  }
 }
+
+
+
