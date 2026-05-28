@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors, library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -14,24 +16,20 @@ class AffordablePubsScreen extends StatefulWidget {
 }
 
 class _AffordablePubsScreenState extends State<AffordablePubsScreen> {
-  List<dynamic> pubs = [];
+  final List<Pubs> _listPubs = <Pubs>[];
   bool isLoading = true;
-
-  EverisFridayState objEFS = EverisFridayState(); //Como en Java
-
-  int get maxPrice => objEFS.precioMaximo;
-  List<Pubs> get _listPubs => objEFS.listaPubs;
   late Future<String> futurePubs;
-
-   
+  double _currentSliderValue = 12;
 
   @override
   void initState() {
     super.initState();
-    futurePubs = fetchAffordablePubs(_listPubs);
+    futurePubs = fetchAffordablePubs();
   }
 
-  Future<String> fetchAffordablePubs(_listPubs) async {
+  Future<String> fetchAffordablePubs() async {
+    _listPubs.clear();
+    int maxPrice = _currentSliderValue.toInt();
     final response = await http.get(Uri.parse('http://localhost:1337/api/pubs/affordable?maxPrice=$maxPrice'));
 
     if (response.statusCode == 200) {
@@ -66,7 +64,23 @@ class _AffordablePubsScreenState extends State<AffordablePubsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Expanded(child: _buildPubs()),
-
+            Slider(
+              value: _currentSliderValue,
+              min: 0,
+              max: 100,
+              showValueIndicator: ShowValueIndicator.onDrag,
+              thumbColor: Color.fromARGB(255, 157, 0, 0),
+              activeColor: Color.fromARGB(255, 157, 0, 0),
+              label: _currentSliderValue.round().toString(), // Muestra el valor flotante al arrastrar
+              onChanged: (double value) {
+                setState(() {
+                  _currentSliderValue = value;
+                });
+              },
+              onChangeEnd: (_){//Refrescar al dejar de arrastrar la bola
+                futurePubs = fetchAffordablePubs();
+              },
+            ),
             // Botón para navegar a AffordablePubsScreen
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -111,8 +125,4 @@ class _AffordablePubsScreenState extends State<AffordablePubsScreen> {
       },
     );
   }
-
 }
-
-
-

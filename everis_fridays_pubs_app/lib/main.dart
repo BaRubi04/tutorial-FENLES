@@ -19,13 +19,13 @@ class EverisFridayApp extends StatefulWidget {
 
 class EverisFridayState extends State<EverisFridayApp> {
   final List<Pubs> _listPubs = <Pubs>[];
-  late Future<String> futurePubs;
-  int maxPrice = 15;
+  late Future<String> futurePubs; 
+  int maxPrice = 12;
 
   @override
   void initState() {
     super.initState();
-    futurePubs = getPubs(_listPubs);
+    futurePubs = getPubs();
   }
   
   @override
@@ -40,8 +40,7 @@ class EverisFridayState extends State<EverisFridayApp> {
         body: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(child: _buildPubs()),
-
+            Expanded(child: _buildPubs()),         
             // Botón para navegar a AffordablePubsScreen
             Padding(
               padding: const EdgeInsets.all(16.0),
@@ -86,7 +85,7 @@ class EverisFridayState extends State<EverisFridayApp> {
       },
     );
   }
-  Future<String> getPubs(_listPubs) async {
+  Future<String> getPubs() async {
     final Response response = await get(Uri.parse('http://localhost:1337/api/pubs'));
 
     if (response.statusCode == 200) {
@@ -99,11 +98,5 @@ class EverisFridayState extends State<EverisFridayApp> {
     } else {
       throw Exception('Failed to load data');
     }
-  }
-  int get precioMaximo {  
-    return maxPrice;  
-  }
-  List<Pubs> get listaPubs {  
-    return _listPubs;  
   }
 }
